@@ -1,0 +1,17 @@
+flask>=2.3.0
+pdfplumber>=0.9.0
+pandas>=2.0.0
+tabula-py>=2.8.0
+PyPDF2>=3.0.0
+numpy>=1.24.0
+python-magic>=0.4.24
+werkzeug>=2.3.0
+gunicorn>=21.0.0
+Pillow>=9.0.0
+pdfminer.six>=20220524
+JPype1>=1.4.0
+
+# Optional: Only install if you need Camelot with CV support
+# You can uncomment these if needed, but they're not required for basic functionality
+# opencv-python-headless>=4.8.0  # Lighter version without GUI
+# camelot-py>=0.10.0 

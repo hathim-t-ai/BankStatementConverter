@@ -1,0 +1,5 @@
+# OCR Dependencies (optional - for image-based PDFs)
+pytesseract>=0.3.10
+pdf2image>=1.16.0
+Pillow>=9.0.0
+opencv-python-headless>=4.0.0 

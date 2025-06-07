@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-xl-10">
+      
+      <!-- Hero Section -->
+      <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">
+          Extract tabular data from PDF bank statements with advanced AI-powered detection
+        </h1>
+        <p class="lead text-muted mb-4">
+          Convert PDF bank statements to CSV format with intelligent table detection and data extraction
+        </p>
+      </div>
+
+      <div class="row">
+        <!-- Main Upload Section -->
+        <div class="col-lg-8 mb-4">
+          <div class="card shadow-sm">
+            <div class="card-body p-4">
+              
+              <!-- Upload Form -->
+              <div id="uploadSection">
+                <h3 class="card-title mb-4">
+                  <i class="fas fa-upload me-2"></i>
+                  Upload Bank Statements
+                </h3>
+                
+                <form id="uploadForm" enctype="multipart/form-data" onsubmit="return false;">
+                  <!-- Column Headers Input -->
+                  <div class="mb-4">
+                    <label for="headers" class="form-label fw-bold">
+                      <i class="fas fa-columns me-2"></i>
+                      Column Headers (comma-separated)
+                    </label>
+                    <input type="text" 
+                           class="form-control form-control-lg" 
+                           id="headers" 
+                           name="headers" 
+                           placeholder="Date, Description, Amount"
+                           value="Date, Description, Amount"
+                           required>
+                    <div class="form-text">
+                      Enter the exact column headers as they appear in your bank statements
+                    </div>
+                  </div>
+                  
+                  <!-- File Upload Area -->
+                  <div class="upload-zone border-2 border-dashed border-primary rounded-3 p-5 text-center mb-4" id="uploadZone">
+                    <div class="upload-content">
+                      <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
+                      <h4 class="mb-3">Drag & Drop</h4>
+                      <p class="text-muted mb-3">or click to select files</p>
+                      <input type="file" 
+                             class="d-none" 
+                             id="fileInput" 
+                             name="files" 
+                             multiple 
+                             accept=".pdf">
+                      <button type="button" class="btn btn-outline-primary btn-lg" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open me-2"></i>
+                        Choose Files
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Selected Files Display -->
+                  <div id="selectedFiles" class="mb-4" style="display: none;">
+                    <h6 class="fw-bold mb-3">Selected Files:</h6>
+                    <div id="fileList" class="border rounded-3 p-3 bg-light"></div>
+                  </div>
+                  
+                  <!-- Convert Button -->
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg" id="convertBtn">
+                      <i class="fas fa-magic me-2"></i>
+                      Convert Bank Statements
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Processing Section -->
+              <div id="processingSection" style="display: none;">
+                <div class="text-center">
+                  <div class="processing-spinner mb-4">
+                    <i class="fas fa-cog fa-spin fa-3x text-primary"></i>
+                  </div>
+                  <h4 class="mb-3">Processing Your Files...</h4>
+                  <p id="processingMessage" class="text-muted mb-4">Starting processing...</p>
+                  
+                  <div class="progress mb-4" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         id="progressBar" 
+                         role="progressbar" 
+                         style="width: 0%"></div>
+                  </div>
+                  
+                  <div class="small text-muted">
+                    Successfully extracted <span id="recordCount">0</span> records
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Results Section -->
+              <div id="resultsSection" style="display: none;">
+                <div class="text-center">
+                  <div class="mb-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h4 class="text-success mb-3">Processing completed successfully!</h4>
+                    <p class="text-muted mb-4" id="resultsMessage">
+                      Successfully extracted 7 records
+                    </p>
+                  </div>
+                  
+                  <div class="d-grid gap-3">
+                    <a href="#" class="btn btn-success btn-lg" id="downloadBtn">
+                      <i class="fas fa-download me-2"></i>
+                      Download CSV (7 records)
+                    </a>
+                    <a href="#" class="btn btn-outline-primary" id="previewBtn">
+                      <i class="fas fa-eye me-2"></i>
+                      Preview Results
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                      <i class="fas fa-plus me-2"></i>
+                      Convert More Files
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Error Section -->
+              <div id="errorSection" style="display: none;">
+                <div class="text-center">
+                  <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h4 class="text-danger mb-3">Processing Failed</h4>
+                    <div class="alert alert-danger">
+                      <span id="errorMessage">An error occurred during processing.</span>
+                    </div>
+                  </div>
+                  
+                  <button type="button" class="btn btn-primary" onclick="resetForm()">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Try Again
+                  </button>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        
+        <!-- Instructions Sidebar -->
+        <div class="col-lg-4">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title text-primary mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                How It Works
+              </h4>
+              
+              <div class="step-item d-flex mb-4">
+                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">1</div>
+                <div>
+                  <h6 class="fw-bold mb-1">Specify Headers</h6>
+                  <p class="small text-muted mb-0">Enter the column headers exactly as they appear in your bank statements</p>
+                </div>
+              </div>
+              
+              <div class="step-item d-flex mb-4">
+                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">2</div>
+                <div>
+                  <h6 class="fw-bold mb-1">Upload PDFs</h6>
+                  <p class="small text-muted mb-0">Drag and drop or select multiple PDF bank statement files</p>
+                </div>
+              </div>
+              
+              <div class="step-item d-flex mb-4">
+                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">3</div>
+                <div>
+                  <h6 class="fw-bold mb-1">AI Processing</h6>
+                  <p class="small text-muted mb-0">Our advanced algorithms extract data from structured and unstructured tables</p>
+                </div>
+              </div>
+              
+              <div class="step-item d-flex mb-4">
+                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">4</div>
+                <div>
+                  <h6 class="fw-bold mb-1">Download Results</h6>
+                  <p class="small text-muted mb-0">Get a consolidated CSV file with all extracted transaction data</p>
+                </div>
+              </div>
+              
+              <hr class="my-4">
+              
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-check-circle me-2"></i>
+                Features
+              </h6>
+              <ul class="list-unstyled small">
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Handles structured tables</li>
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Processes unstructured data</li>
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Multiple extraction methods</li>
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Intelligent deduplication</li>
+                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Batch processing</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-zone {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: var(--bs-primary) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.upload-zone.dragover {
+  border-color: var(--bs-success) !important;
+  background-color: rgba(var(--bs-success-rgb), 0.1);
+}
+
+.processing-spinner {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.step-number {
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+}
+
+.file-item:last-child {
+  margin-bottom: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentJobId = null;
+let statusInterval = null;
+
+// DOM Elements
+const uploadForm = document.getElementById('uploadForm');
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const selectedFiles = document.getElementById('selectedFiles');
+const fileList = document.getElementById('fileList');
+
+// Section Elements
+const uploadSection = document.getElementById('uploadSection');
+const processingSection = document.getElementById('processingSection');
+const resultsSection = document.getElementById('resultsSection');
+const errorSection = document.getElementById('errorSection');
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  setupEventListeners();
+  checkForExistingJob();
+});
+
+function setupEventListeners() {
+  // Drag and drop
+  uploadZone.addEventListener('dragover', handleDragOver);
+  uploadZone.addEventListener('dragleave', handleDragLeave);
+  uploadZone.addEventListener('drop', handleDrop);
+  uploadZone.addEventListener('click', () => fileInput.click());
+  
+  // File selection
+  fileInput.addEventListener('change', handleFileSelect);
+  
+  // Form submission
+  uploadForm.addEventListener('submit', handleSubmit);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  
+  const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+  if (files.length > 0) {
+    updateFileInput(files);
+    displaySelectedFiles(files);
+  }
+}
+
+function handleFileSelect(e) {
+  const files = Array.from(e.target.files);
+  displaySelectedFiles(files);
+}
+
+function updateFileInput(files) {
+  const dt = new DataTransfer();
+  files.forEach(file => dt.items.add(file));
+  fileInput.files = dt.files;
+}
+
+function displaySelectedFiles(files) {
+  if (files.length === 0) {
+    selectedFiles.style.display = 'none';
+    return;
+  }
+  
+  selectedFiles.style.display = 'block';
+  fileList.innerHTML = '';
+  
+  files.forEach((file, index) => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+      <div class="d-flex align-items-center">
+        <i class="fas fa-file-pdf text-danger me-2"></i>
+        <div>
+          <div class="fw-medium">${file.name}</div>
+          <small class="text-muted">${formatFileSize(file.size)}</small>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    fileList.appendChild(fileItem);
+  });
+}
+
+function removeFile(index) {
+  const files = Array.from(fileInput.files);
+  files.splice(index, 1);
+  updateFileInput(files);
+  displaySelectedFiles(files);
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  // Prevent multiple submissions
+  const submitBtn = document.getElementById('convertBtn');
+  if (submitBtn.disabled) {
+    return;
+  }
+  
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+  
+  const formData = new FormData(uploadForm);
+  
+  // Show processing section
+  showSection('processing');
+  
+  try {
+    const response = await fetch('/upload', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      currentJobId = result.job_id;
+      startStatusPolling();
+    } else {
+      showError(result.error || 'Upload failed');
+      resetSubmitButton();
+    }
+    
+  } catch (error) {
+    showError('Upload failed: ' + error.message);
+    resetSubmitButton();
+  }
+}
+
+function resetSubmitButton() {
+  const submitBtn = document.getElementById('convertBtn');
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Convert Bank Statements';
+}
+
+function startStatusPolling() {
+  if (statusInterval) {
+    clearInterval(statusInterval);
+  }
+  
+  statusInterval = setInterval(async () => {
+    try {
+      const response = await fetch(`/status/${currentJobId}`);
+      const status = await response.json();
+      
+      if (status.success) {
+        updateProgress(status);
+        
+        if (status.status === 'completed') {
+          clearInterval(statusInterval);
+          showResults(status);
+        } else if (status.status === 'error') {
+          clearInterval(statusInterval);
+          showError(status.error || 'Processing failed');
+        }
+      } else {
+        clearInterval(statusInterval);
+        showError(status.error || 'Status check failed');
+      }
+    } catch (error) {
+      clearInterval(statusInterval);
+      showError('Connection error: ' + error.message);
+    }
+  }, 1000);
+}
+
+function updateProgress(status) {
+  document.getElementById('processingMessage').textContent = status.message;
+  document.getElementById('progressBar').style.width = status.progress + '%';
+  document.getElementById('recordCount').textContent = status.extracted_records || 0;
+}
+
+function showResults(status) {
+  if (status.results && status.results.total_records > 0) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    
+    downloadBtn.href = `/download/${currentJobId}`;
+    downloadBtn.innerHTML = `<i class="fas fa-download me-2"></i>Download CSV (${status.results.total_records} records)`;
+    
+    previewBtn.href = `/preview/${currentJobId}`;
+    
+    document.getElementById('resultsMessage').textContent = 
+      `Successfully extracted ${status.results.total_records} transaction records`;
+  } else {
+    document.getElementById('resultsMessage').textContent = 
+      'No transaction data found in the uploaded files';
+  }
+  
+  showSection('results');
+}
+
+function showError(message) {
+  document.getElementById('errorMessage').textContent = message;
+  showSection('error');
+}
+
+function showSection(section) {
+  // Hide all sections
+  uploadSection.style.display = 'none';
+  processingSection.style.display = 'none';
+  resultsSection.style.display = 'none';
+  errorSection.style.display = 'none';
+  
+  // Show requested section
+  document.getElementById(section + 'Section').style.display = 'block';
+}
+
+function resetForm() {
+  // Clear current job
+  currentJobId = null;
+  if (statusInterval) {
+    clearInterval(statusInterval);
+  }
+  
+  // Reset form
+  uploadForm.reset();
+  selectedFiles.style.display = 'none';
+  
+  // Reset submit button
+  resetSubmitButton();
+  
+  // Show upload section
+  showSection('upload');
+}
+
+async function checkForExistingJob() {
+  try {
+    const response = await fetch('/recover');
+    const result = await response.json();
+    
+    if (result.success) {
+      currentJobId = result.job_id;
+      
+      if (result.status === 'processing') {
+        showSection('processing');
+        startStatusPolling();
+      } else if (result.status === 'completed') {
+        // Get full status and show results
+        const statusResponse = await fetch(`/status/${currentJobId}`);
+        const status = await statusResponse.json();
+        if (status.success) {
+          showResults(status);
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore recovery errors
+    console.log('No existing job to recover');
+  }
+}
+</script>
+{% endblock %} 
